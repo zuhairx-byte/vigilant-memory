@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Snake.io Clone</title>
+<style>
+  body {
+    margin: 0;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  canvas {
+    background: #000;
+    border: 2px solid #0f0;
+  }
+  #score {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    color: #0f0;
+    font-family: Arial;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+<canvas id="game" width="800" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let score = 0;
+
+const player = {
+  x: 400,
+  y: 250,
+  size: 8,
+  dx: 2,
+  dy: 0,
+  body: []
+};
+
+const food = {
+  x: Math.random() * 780,
+  y: Math.random() * 480,
+  size: 6
+};
+
+const bots = [];
+
+for (let i = 0; i < 5; i++) {
+  bots.push({
+    x: Math.random() * 800,
+    y: Math.random() * 500,
+    size: 8,
+    dx: Math.random() * 2 - 1,
+    dy: Math.random() * 2 - 1
+  });
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") { player.dx = 0; player.dy = -2; }
+  if (e.key === "ArrowDown") { player.dx = 0; player.dy = 2; }
+  if (e.key === "ArrowLeft") { player.dx = -2; player.dy = 0; }
+  if (e.key === "ArrowRight") { player.dx = 2; player.dy = 0; }
+});
+
+function drawCircle(x, y, size, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Player move
+  player.x += player.dx;
+  player.y += player.dy;
+
+  player.body.push({ x: player.x, y: player.y });
+  if (player.body.length > score + 10) {
+    player.body.shift();
+  }
+
+  // Draw player
+  player.body.forEach((p, i) => {
+    drawCircle(p.x, p.y, player.size, i === player.body.length - 1 ? "#0f0" : "#0a0");
+  });
+
+  // Draw food
+  drawCircle(food.x, food.y, food.size, "red");
+
+  // Eat food
+  if (Math.hypot(player.x - food.x, player.y - food.y) < 10) {
+    score++;
+    document.getElementById("score").innerText = "Score: " + score;
+    food.x = Math.random() * 780;
+    food.y = Math.random() * 480;
+  }
+
+  // Bots
+  bots.forEach(bot => {
+    bot.x += bot.dx;
+    bot.y += bot.dy;
+
+    if (Math.random() < 0.02) {
+      bot.dx = Math.random() * 2 - 1;
+      bot.dy = Math.random() * 2 - 1;
+    }
+
+    drawCircle(bot.x, bot.y, bot.size, "yellow");
+  });
+
+  // Wall wrap
+  if (player.x < 0) player.x = canvas.width;
+  if (player.x > canvas.width) player.x = 0;
+  if (player.y < 0) player.y = canvas.height;
+  if (player.y > canvas.height) player.y = 0;
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
+
+</body>
+</html>
